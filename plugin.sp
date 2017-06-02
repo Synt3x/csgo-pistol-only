@@ -1,114 +1,131 @@
+#include <cstrike>
 #include <sourcemod>
 #include <sdktools>
-#include <cstrike>
 
-new Handle:GunMenu = INVALID_HANDLE;
-new String:secondaryWeapon[MAXPLAYERS + 1][20];
-new String:lastSecondaryWeapon[MAXPLAYERS + 1][20];
-new bool:gotWeaponThisLifeMenu[MAXPLAYERS + 1];
-new armourOffset;
-new helmetOffset;
+new Handle:dialog = INVALID_HANDLE;
 
-public Plugin:myinfo = {
+new String:defaultWeapon[20];
+new String:currentWeapon[MAXPLAYERS + 1][20];
+new String:previousWeapon[MAXPLAYERS + 1][20];
 
+new bool:receiveDialog[MAXPLAYERS + 1];
+new bool:receivedWeaponOnSpawnFromMenu[MAXPLAYERS + 1];
+new bool:debugmode = false;
+
+new item_bodyarmor;
+new item_helmet;
+
+public Plugin:myinfo =  {
 	name = "Pistol Only",
 	author = "Robin Linusson",
-	description = "Pistol Only",
-	version = "1.1",
+	description = "Pistol Only for Counter-Strike:Global Offensive",
+	version = "1.2",
 	url = "http://www.synt3x.com"
-
 };
 
 public OnPluginStart() {
 
-	armourOffset = FindSendPropOffs("CCSPlayer", "m_ArmorValue");
-	helmetOffset = FindSendPropOffs("CCSPlayer", "m_bHasHelmet");
+	// Body armor and helmt
+	item_bodyarmor = FindSendPropInfo("CCSPlayer", "m_ArmorValue");
+	item_helmet = FindSendPropInfo("CCSPlayer", "m_bHasHelmet");
 
 	// Pistol Menu
-	GunMenu = BuildOptionsMenu();
+	dialog = PistolMenu();
 
-	// Commands
-	RegConsoleCmd("sm_pistol", pistolMenu);
-	RegConsoleCmd("sm_pistols", pistolMenu);
-	RegConsoleCmd("sm_guns", pistolMenu);
+	// Default weapon
+	defaultWeapon = "weapon_glock";
 
-	// Hooks
-	HookEvent("player_team", Event_PlayerTeam);
+	// Reg chat commando
+	RegConsoleCmd("sm_gun", changeWeapon);
+	RegConsoleCmd("sm_guns", changeWeapon);
+	RegConsoleCmd("sm_pistol", changeWeapon);
+	RegConsoleCmd("sm_pistols", changeWeapon);
+
+	//HookEvent (Listener)
 	HookEvent("player_spawn", EventPlayerSpawn, EventHookMode_Post);
-
 }
 
+// Cleaning up after the player left the server
 public OnClientDisconnect(client) {
-
-	secondaryWeapon[client] = "";
-	lastSecondaryWeapon[client] = "";
-
+	currentWeapon[client] = "";
+	previousWeapon[client] = "";
+	receiveDialog[client] = true;
+	receivedWeaponOnSpawnFromMenu[client] = false;
 }
 
-public Action:Event_PlayerTeam(Handle:event, const String:name[], bool:dontBroadcast) {
+public Action:EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast) {
 
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	PrintToChat(client, "Type !pistol, !pistols or !guns to choose a new pistol");
+	// Get the client that we are going to work with
+	new client = GetClientOfUserId(GetEventInt(event,"userid"));
 
-}
+	// Checks if it's a real player and didn't join spectator
+	if (IsClientInGame(client) && IsPlayerAlive(client) && !IsFakeClient(client) && (GetClientTeam(client) == CS_TEAM_T || GetClientTeam(client) == CS_TEAM_CT)) {
 
-public Action:EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast){
+		// Keep updating witch weapon we previoused used
+		previousWeapon[client] = currentWeapon[client];
 
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	gotWeaponThisLifeMenu[client] = false;
-	GiveArmorHelm(client);
-
-	if (IsClientInGame(client) && !IsFakeClient(client) && ((Teams:GetClientTeam(client) == CS_TEAM_T) || (Teams:GetClientTeam(client) == CS_TEAM_CT)) && IsPlayerAlive(client)) {
-
-		RemoveWeapon(client);
-		GivePlayerItem(client, "weapon_knife");
-
-		if (!(StrEqual(secondaryWeapon[client],""))) {
-
-			GivePlayerItem(client, secondaryWeapon[client]);
-
+		// Player doesn't have any weapon. Maybe because it's first time spawning?
+		if (StrEqual(previousWeapon[client],"")) {
+			currentWeapon[client] = defaultWeapon;
 		} else {
-
-			GivePlayerItem(client, "weapon_glock");
-			DisplayMenu(GunMenu, client, 20)
-
+			currentWeapon[client] = previousWeapon[client];
 		}
 
+		// Send game instructions to the player
+		PrintToChat(client, "Type !gun, !guns, !pistol or !pistols to choose a new pistol");
+
+		// Fix items and armor
+		RemoveWeaponsFromPlayer(client);
+		GivePlayerItem(client, "weapon_knife");
+		GivePlayerItem(client, currentWeapon[client]);
+		GiveArmorToPlayer(client);
+		receivedWeaponOnSpawnFromMenu[client] = false;
+
+		// Player want to receive previous weapon. Then we don't show him the dialog
+		if (receiveDialog[client]) {
+			DisplayMenu(dialog, client, MENU_TIME_FOREVER);
+		}
+	}
+}
+
+public GiveArmorToPlayer(client) {
+	SetEntData(client, item_bodyarmor, 100);
+	SetEntData(client, item_helmet, 1);
+}
+
+public RemoveWeaponsFromPlayer(client) {
+
+	for (new i = 0; i <= 3; i++) {
+		new entity = GetPlayerWeaponSlot(client, i);
+
+		if (entity != -1) {
+			RemovePlayerItem(client, entity);
+			//RemoveEdict(entity); should we use this?
+		}
+	}
+}
+
+public Action:changeWeapon(client, args) {
+
+	receiveDialog[client] = true;
+
+	if (receivedWeaponOnSpawnFromMenu[client]) {
+		PrintToChat(client, "Pistol menu will appear next time you spawn.");
+	} else {
+		DisplayMenu(dialog, client, MENU_TIME_FOREVER);
 	}
 
+	return Plugin_Continue;
 }
 
-GiveArmorHelm(client) {
+// Creating a Menu/Dialog
+Handle:PistolMenu() {
 
-	SetEntData(client, armourOffset, 100);
-	SetEntData(client, helmetOffset, 1);
-
-}
-
-RemoveWeapon(client) {
-
-    for(new i = 0; i < 4; i++) {
-
-        new ent = GetPlayerWeaponSlot(client, i);
-
-        if (ent != -1) {
-
-            RemovePlayerItem(client, ent);
-            RemoveEdict(ent);
-
-        }
-
-    }
-
-}
-
-Handle:BuildOptionsMenu() {
-
-	new Handle:menu = CreateMenu(Menu_Options);
+	new Handle:menu = CreateMenu(PistolMenuFunction);
 	SetMenuTitle(menu, "Pistol Menu:");
 	SetMenuExitButton(menu, false);
 
-	AddMenuItem(menu, "same", "Same Every Round");
+	AddMenuItem(menu, "same", "Hide Menu");
 
 	AddMenuItem(menu, "weapon_glock", "Glock");
 	AddMenuItem(menu, "weapon_hkp2000", "HKP-2000");
@@ -121,70 +138,36 @@ Handle:BuildOptionsMenu() {
 	AddMenuItem(menu, "weapon_deagle", "Deagle");
 	AddMenuItem(menu, "weapon_revolver", "R8 Revolver");
 
-
 	return menu;
-
 }
 
-public Menu_Options(Handle:menu, MenuAction:action, client, param2) {
+public PistolMenuFunction(Handle:menu, MenuAction:action, client, item) {
 
+	// We selected an item, do some magic.
 	if (action == MenuAction_Select) {
 
-		// Debug what weapon you got
-		// decl String:info[20];
-		// new bool:found = GetMenuItem(menu, param2, info, sizeof(info));
-		// PrintToConsole(client, "You selected item: %d (found? %d info: %s)", param2, found, info);
-		// You selected item: 0 (found? 1 info: weapon_ak47)
-		// You selected item: 4 (found? 1 info: weapon_awp)
+		// Get the name of the weapon the client selected in the menu
+		decl String:selectedWeapon[20];
+		GetMenuItem(menu, item, selectedWeapon, sizeof(selectedWeapon));
 
-		decl String:info[20];
-		GetMenuItem(menu, param2, info, sizeof(info));
-
-		if (StrEqual(info,"same")) {
-
-			RemoveWeapon(client);
-			GivePlayerItem(client, "weapon_knife");
-
-			if (StrEqual(lastSecondaryWeapon[client],"")) {
-
-				lastSecondaryWeapon[client] = "weapon_glock";
-
-			}
-
-			secondaryWeapon[client] = lastSecondaryWeapon[client];
-			GivePlayerItem(client, secondaryWeapon[client]);
-
-
-
-		} else {
-
-			RemoveWeapon(client);
-			GivePlayerItem(client, "weapon_knife");
-			GivePlayerItem(client, info);
-
-			lastSecondaryWeapon[client] = info;
+		// Print information about current weapon selected if debug is enable
+		if (debugmode) {
+			PrintToConsole(client, "You selected item: '%d'. You selected weapon: '%s'.",item, selectedWeapon);
 		}
 
-		gotWeaponThisLifeMenu[client] = true;
+		//  If player choosed "same" he will get same weapon everyround
+		if (StrEqual(selectedWeapon,"same")) {
+			receiveDialog[client] = false;
+		} else {
+
+			// Remove players weapon and gives the selected one
+			currentWeapon[client] = selectedWeapon;
+			RemoveWeaponsFromPlayer(client);
+			GivePlayerItem(client, "weapon_knife");
+			GivePlayerItem(client, currentWeapon[client]);
+
+			// Update boolean so that we can't receive any extra weapon with !pistol
+			receivedWeaponOnSpawnFromMenu[client] = true;
+		}
 	}
-
-}
-
-public Action:pistolMenu(client, args) {
-
-	secondaryWeapon[client] = "";
-
-	if (!gotWeaponThisLifeMenu[client]) {
-
-		gotWeaponThisLifeMenu[client] = true;
-		DisplayMenu(GunMenu, client, MENU_TIME_FOREVER);
-
-	} else {
-
-		PrintToChat(client, "Pistol menu will appear next time you spawn.");
-
-	}
-
-	return Plugin_Continue;
-
 }
