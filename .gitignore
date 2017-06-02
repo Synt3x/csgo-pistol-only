@@ -1,0 +1,10 @@
+
+# Created by https://www.gitignore.io/api/sourcepawn
+
+### SourcePawn ###
+# SourcePawn
+*.dll # extensions
+*.so # extensions
+*.smx # plugins
+
+# End of https://www.gitignore.io/api/sourcepawn
