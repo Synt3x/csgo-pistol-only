@@ -14,7 +14,7 @@ public Plugin:myinfo = {
 	name = "Pistol Only",
 	author = "Robin Linusson",
 	description = "Pistol Only",
-	version = "1.0",
+	version = "1.1",
 	url = "http://www.synt3x.com"
 
 };
@@ -110,15 +110,17 @@ Handle:BuildOptionsMenu() {
 
 	AddMenuItem(menu, "same", "Same Every Round");
 
+	AddMenuItem(menu, "weapon_glock", "Glock");
 	AddMenuItem(menu, "weapon_hkp2000", "HKP-2000");
 	AddMenuItem(menu, "weapon_usp_silencer", "USP Silencer");
-	AddMenuItem(menu, "weapon_glock", "Glock");
 	AddMenuItem(menu, "weapon_p250", "P250");
 	AddMenuItem(menu, "weapon_fiveseven", "Five Seven");
 	AddMenuItem(menu, "weapon_CZ75", "CZ75 Auto");
 	AddMenuItem(menu, "weapon_elite", "Dual Elite");
 	AddMenuItem(menu, "weapon_tec9", "Tec9");
 	AddMenuItem(menu, "weapon_deagle", "Deagle");
+	AddMenuItem(menu, "weapon_revolver", "R8 Revolver");
+
 
 	return menu;
 
