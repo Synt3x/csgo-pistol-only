@@ -19,7 +19,7 @@ public Plugin:myinfo =  {
 	name = "Pistol Only",
 	author = "Robin Linusson",
 	description = "Pistol Only for Counter-Strike:Global Offensive",
-	version = "1.2",
+	version = "1.3",
 	url = "http://www.synt3x.com"
 };
 
@@ -132,7 +132,7 @@ Handle:PistolMenu() {
 	AddMenuItem(menu, "weapon_usp_silencer", "USP Silencer");
 	AddMenuItem(menu, "weapon_p250", "P250");
 	AddMenuItem(menu, "weapon_fiveseven", "Five Seven");
-	AddMenuItem(menu, "weapon_CZ75", "CZ75 Auto");
+	AddMenuItem(menu, "weapon_cz75a", "CZ75 Auto");
 	AddMenuItem(menu, "weapon_elite", "Dual Elite");
 	AddMenuItem(menu, "weapon_tec9", "Tec9");
 	AddMenuItem(menu, "weapon_deagle", "Deagle");
