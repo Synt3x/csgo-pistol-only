@@ -25,27 +25,27 @@ public Plugin:myinfo =  {
 
 public OnPluginStart() {
 
-	// Body armor and helmt
+	// Cache the sendprop offsets for armor and helmet
 	item_bodyarmor = FindSendPropInfo("CCSPlayer", "m_ArmorValue");
 	item_helmet = FindSendPropInfo("CCSPlayer", "m_bHasHelmet");
 
-	// Pistol Menu
+	// Create the pistol selection menu
 	dialog = PistolMenu();
 
-	// Default weapon
+	// Set the default pistol
 	defaultWeapon = "weapon_glock";
 
-	// Reg chat commando
+	// Register chat commands for opening the pistol menu
 	RegConsoleCmd("sm_gun", changeWeapon);
 	RegConsoleCmd("sm_guns", changeWeapon);
 	RegConsoleCmd("sm_pistol", changeWeapon);
 	RegConsoleCmd("sm_pistols", changeWeapon);
 
-	//HookEvent (Listener)
+	// Listen for player spawns
 	HookEvent("player_spawn", EventPlayerSpawn, EventHookMode_Post);
 }
 
-// Cleaning up after the player left the server
+// Reset stored player data when they leave the server
 public OnClientDisconnect(client) {
 	currentWeapon[client] = "";
 	previousWeapon[client] = "";
@@ -55,33 +55,33 @@ public OnClientDisconnect(client) {
 
 public Action:EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast) {
 
-	// Get the client that we are going to work with
+	// Get the client who triggered this spawn event
 	new client = GetClientOfUserId(GetEventInt(event,"userid"));
 
-	// Checks if it's a real player and didn't join spectator
+	// Only handle real players on T or CT who are alive and in game
 	if (IsClientInGame(client) && IsPlayerAlive(client) && !IsFakeClient(client) && (GetClientTeam(client) == CS_TEAM_T || GetClientTeam(client) == CS_TEAM_CT)) {
 
-		// Keep updating witch weapon we previoused used
+		// Remember the pistol the player used previously
 		previousWeapon[client] = currentWeapon[client];
 
-		// Player doesn't have any weapon. Maybe because it's first time spawning?
+		// Use the default pistol if this is the player's first valid spawn
 		if (StrEqual(previousWeapon[client],"")) {
 			currentWeapon[client] = defaultWeapon;
 		} else {
 			currentWeapon[client] = previousWeapon[client];
 		}
 
-		// Send game instructions to the player
+		// Tell the player how to reopen the pistol menu
 		PrintToChat(client, "Type !gun, !guns, !pistol or !pistols to choose a new pistol");
 
-		// Fix items and armor
+		// Strip current weapons, then give knife, pistol, and armor
 		RemoveWeaponsFromPlayer(client);
 		GivePlayerItem(client, "weapon_knife");
 		GivePlayerItem(client, currentWeapon[client]);
 		GiveArmorToPlayer(client);
 		receivedWeaponOnSpawnFromMenu[client] = false;
 
-		// Player want to receive previous weapon. Then we don't show him the dialog
+		// Show the menu unless the player chose to keep using the same pistol
 		if (receiveDialog[client]) {
 			DisplayMenu(dialog, client, MENU_TIME_FOREVER);
 		}
@@ -100,7 +100,6 @@ public RemoveWeaponsFromPlayer(client) {
 
 		if (entity != -1) {
 			RemovePlayerItem(client, entity);
-			//RemoveEdict(entity); should we use this?
 		}
 	}
 }
@@ -118,7 +117,7 @@ public Action:changeWeapon(client, args) {
 	return Plugin_Continue;
 }
 
-// Creating a Menu/Dialog
+// Create the pistol selection menu
 Handle:PistolMenu() {
 
 	new Handle:menu = CreateMenu(PistolMenuFunction);
@@ -143,30 +142,30 @@ Handle:PistolMenu() {
 
 public PistolMenuFunction(Handle:menu, MenuAction:action, client, item) {
 
-	// We selected an item, do some magic.
+	// Handle the player's menu selection
 	if (action == MenuAction_Select) {
 
-		// Get the name of the weapon the client selected in the menu
+		// Read the internal weapon name from the selected menu item
 		decl String:selectedWeapon[20];
 		GetMenuItem(menu, item, selectedWeapon, sizeof(selectedWeapon));
 
-		// Print information about current weapon selected if debug is enable
+		// Print debug information about the selected weapon
 		if (debugmode) {
 			PrintToConsole(client, "You selected item: '%d'. You selected weapon: '%s'.",item, selectedWeapon);
 		}
 
-		//  If player choosed "same" he will get same weapon everyround
+		// If the player selected "same", keep the same pistol every round
 		if (StrEqual(selectedWeapon,"same")) {
 			receiveDialog[client] = false;
 		} else {
 
-			// Remove players weapon and gives the selected one
+			// Replace the player's current weapons with the selected pistol
 			currentWeapon[client] = selectedWeapon;
 			RemoveWeaponsFromPlayer(client);
 			GivePlayerItem(client, "weapon_knife");
 			GivePlayerItem(client, currentWeapon[client]);
 
-			// Update boolean so that we can't receive any extra weapon with !pistol
+			// Mark that the player already received a pistol from the menu this spawn
 			receivedWeaponOnSpawnFromMenu[client] = true;
 		}
 	}
