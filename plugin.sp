@@ -19,7 +19,7 @@ public Plugin:myinfo =  {
 	name = "Pistol Only",
 	author = "Robin Linusson",
 	description = "Pistol Only for Counter-Strike:Global Offensive",
-	version = "1.3",
+	version = "1.4a",
 	url = "http://www.synt3x.com"
 };
 
@@ -33,7 +33,7 @@ public OnPluginStart() {
 	dialog = PistolMenu();
 
 	// Set the default pistol
-	defaultWeapon = "weapon_glock";
+	strcopy(defaultWeapon, sizeof(defaultWeapon), "weapon_glock");
 
 	// Register chat commands for opening the pistol menu
 	RegConsoleCmd("sm_gun", changeWeapon);
@@ -47,8 +47,8 @@ public OnPluginStart() {
 
 // Reset stored player data when they leave the server
 public OnClientDisconnect(client) {
-	currentWeapon[client] = "";
-	previousWeapon[client] = "";
+	currentWeapon[client][0] = '\0';
+	previousWeapon[client][0] = '\0';
 	receiveDialog[client] = true;
 	receivedWeaponOnSpawnFromMenu[client] = false;
 }
@@ -57,18 +57,21 @@ public Action:EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroad
 
 	// Get the client who triggered this spawn event
 	new client = GetClientOfUserId(GetEventInt(event,"userid"));
+	if (client <= 0) {
+		return Plugin_Continue;
+	}
 
 	// Only handle real players on T or CT who are alive and in game
 	if (IsClientInGame(client) && IsPlayerAlive(client) && !IsFakeClient(client) && (GetClientTeam(client) == CS_TEAM_T || GetClientTeam(client) == CS_TEAM_CT)) {
 
 		// Remember the pistol the player used previously
-		previousWeapon[client] = currentWeapon[client];
+		strcopy(previousWeapon[client], sizeof(previousWeapon[]), currentWeapon[client]);
 
 		// Use the default pistol if this is the player's first valid spawn
 		if (StrEqual(previousWeapon[client],"")) {
-			currentWeapon[client] = defaultWeapon;
+			strcopy(currentWeapon[client], sizeof(currentWeapon[]), defaultWeapon);
 		} else {
-			currentWeapon[client] = previousWeapon[client];
+			strcopy(currentWeapon[client], sizeof(currentWeapon[]), previousWeapon[client]);
 		}
 
 		// Tell the player how to reopen the pistol menu
@@ -86,6 +89,8 @@ public Action:EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroad
 			DisplayMenu(dialog, client, MENU_TIME_FOREVER);
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public GiveArmorToPlayer(client) {
@@ -105,6 +110,9 @@ public RemoveWeaponsFromPlayer(client) {
 }
 
 public Action:changeWeapon(client, args) {
+	if (client <= 0 || !IsClientInGame(client) || IsFakeClient(client)) {
+		return Plugin_Handled;
+	}
 
 	receiveDialog[client] = true;
 
@@ -160,7 +168,7 @@ public PistolMenuFunction(Handle:menu, MenuAction:action, client, item) {
 		} else {
 
 			// Replace the player's current weapons with the selected pistol
-			currentWeapon[client] = selectedWeapon;
+			strcopy(currentWeapon[client], sizeof(currentWeapon[]), selectedWeapon);
 			RemoveWeaponsFromPlayer(client);
 			GivePlayerItem(client, "weapon_knife");
 			GivePlayerItem(client, currentWeapon[client]);
@@ -169,4 +177,6 @@ public PistolMenuFunction(Handle:menu, MenuAction:action, client, item) {
 			receivedWeaponOnSpawnFromMenu[client] = true;
 		}
 	}
+
+	return 0;
 }
