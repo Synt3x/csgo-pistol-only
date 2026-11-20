@@ -2,6 +2,12 @@
 
 Newest first.
 
+## 2026-11-20 – v1.5 isn't tagged until tested on a server
+- **Area:** Release
+- **Decision:** Changes can be pushed to master (CI checks that it compiles), but the v1.5 tag and release wait until the plugin has been tested on a CS:GO server.
+- **Why:** The one-frame spawn delay, weapon cleanup, plain-pistol giving and ConVars change in-game behaviour that can't be checked without a server. 1.4 was never released, so v1.5 is the first release with all of it.
+- **Level:** LIVE
+
 ## 2026-11-20 – Default pistol is the USP-S and is set with a ConVar
 - **Area:** Settings
 - **Decision:** `sm_pistolonly_default` (default `weapon_usp_silencer`) and `sm_pistolonly_debug` replace hardcoded values. Invalid names fall back to the USP-S and are logged.

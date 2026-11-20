@@ -5,7 +5,7 @@
 #include <sourcemod>
 #include <sdktools>
 
-#define PLUGIN_VERSION "1.4"
+#define PLUGIN_VERSION "1.5"
 #define WEAPON_NAME_LENGTH 32
 #define FALLBACK_WEAPON "weapon_usp_silencer"
 

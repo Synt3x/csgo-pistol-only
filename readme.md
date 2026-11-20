@@ -122,7 +122,7 @@ mp_halftime_pausetimer 0
 ### Releasing
 Every push is compiled by GitHub Actions. To publish a release:
 1. Update `PLUGIN_VERSION` at the top of `plugin.sp` and commit.
-2. Tag the commit with the same version and push the tag, e.g. `git tag v1.4` and `git push origin v1.4`.
+2. Tag the commit with the same version and push the tag, e.g. `git tag v1.5` and `git push origin v1.5`.
 
 The workflow attaches the compiled `.smx` to the release, and fails if the tag doesn't match `PLUGIN_VERSION`.
 
