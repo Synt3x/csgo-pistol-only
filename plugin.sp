@@ -12,9 +12,6 @@ new bool:receiveDialog[MAXPLAYERS + 1];
 new bool:receivedWeaponOnSpawnFromMenu[MAXPLAYERS + 1];
 new bool:debugmode = false;
 
-new item_bodyarmor;
-new item_helmet;
-
 public Plugin:myinfo =  {
 	name = "Pistol Only",
 	author = "Robin Linusson",
@@ -24,10 +21,6 @@ public Plugin:myinfo =  {
 };
 
 public OnPluginStart() {
-
-	// Cache the sendprop offsets for armor and helmet
-	item_bodyarmor = FindSendPropInfo("CCSPlayer", "m_ArmorValue");
-	item_helmet = FindSendPropInfo("CCSPlayer", "m_bHasHelmet");
 
 	// Create the pistol selection menu
 	dialog = PistolMenu();
@@ -94,8 +87,8 @@ public Action:EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroad
 }
 
 public GiveArmorToPlayer(client) {
-	SetEntData(client, item_bodyarmor, 100);
-	SetEntData(client, item_helmet, 1);
+	SetEntProp(client, Prop_Send, "m_ArmorValue", 100);
+	SetEntProp(client, Prop_Send, "m_bHasHelmet", 1);
 }
 
 public RemoveWeaponsFromPlayer(client) {
