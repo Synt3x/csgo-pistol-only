@@ -84,6 +84,13 @@ public void OnPluginStart() {
 	RegConsoleCmd("sm_pistols", Command_Pistol);
 
 	HookEvent("player_spawn", Event_PlayerSpawn);
+
+	// Players already on the server when the plugin is loaded mid-game
+	for (int client = 1; client <= MaxClients; client++) {
+		if (IsClientInGame(client)) {
+			ResetClient(client);
+		}
+	}
 }
 
 public void OnConfigsExecuted() {
@@ -92,10 +99,11 @@ public void OnConfigsExecuted() {
 }
 
 public void OnClientPutInServer(int client) {
-	g_ShowMenuOnSpawn[client] = true;
+	ResetClient(client);
 }
 
-public void OnClientDisconnect(int client) {
+// Start every player with no pick, the menu on spawn and the hint unseen
+void ResetClient(int client) {
 	g_ChosenWeapon[client][0] = '\0';
 	g_ShowMenuOnSpawn[client] = true;
 	g_PickedThisLife[client] = false;
