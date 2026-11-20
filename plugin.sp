@@ -8,6 +8,34 @@
 #define PLUGIN_VERSION "1.4"
 #define WEAPON_NAME_LENGTH 32
 
+// Pistols that can be chosen, in menu order
+static const char PISTOL_WEAPONS[][] = {
+	"weapon_glock",
+	"weapon_hkp2000",
+	"weapon_usp_silencer",
+	"weapon_p250",
+	"weapon_fiveseven",
+	"weapon_cz75a",
+	"weapon_elite",
+	"weapon_tec9",
+	"weapon_deagle",
+	"weapon_revolver"
+};
+
+// Menu labels, in the same order as PISTOL_WEAPONS
+static const char PISTOL_NAMES[][] = {
+	"Glock",
+	"HKP-2000",
+	"USP Silencer",
+	"P250",
+	"Five Seven",
+	"CZ75 Auto",
+	"Dual Elite",
+	"Tec9",
+	"Deagle",
+	"R8 Revolver"
+};
+
 Menu dialog = null;
 
 char defaultWeapon[WEAPON_NAME_LENGTH];
@@ -82,10 +110,8 @@ public void OnPlayerSpawnFrame(any userid) {
 			shownSpawnHint[client] = true;
 		}
 
-		// Strip current weapons, then give knife, pistol, and armor
-		RemoveWeaponsFromPlayer(client);
-		GivePlayerItem(client, "weapon_knife");
-		GivePlayerItem(client, currentWeapon[client]);
+		// Replace the player's weapons with knife and pistol, then give armor
+		GivePistol(client, currentWeapon[client]);
 		GiveArmorToPlayer(client);
 		receivedWeaponOnSpawnFromMenu[client] = false;
 
@@ -99,6 +125,13 @@ public void OnPlayerSpawnFrame(any userid) {
 // Tell the player how to open the pistol menu
 void PrintCommandHint(int client) {
 	PrintToChat(client, "Type !gun, !guns, !pistol or !pistols to choose a new pistol");
+}
+
+// Strip the player's weapons, then give a knife and the pistol
+void GivePistol(int client, const char[] weapon) {
+	RemoveWeaponsFromPlayer(client);
+	GivePlayerItem(client, "weapon_knife");
+	GivePlayerItem(client, weapon);
 }
 
 void GiveArmorToPlayer(int client) {
@@ -152,16 +185,9 @@ Menu PistolMenu() {
 
 	menu.AddItem("same", "Keep current pistol");
 
-	menu.AddItem("weapon_glock", "Glock");
-	menu.AddItem("weapon_hkp2000", "HKP-2000");
-	menu.AddItem("weapon_usp_silencer", "USP Silencer");
-	menu.AddItem("weapon_p250", "P250");
-	menu.AddItem("weapon_fiveseven", "Five Seven");
-	menu.AddItem("weapon_cz75a", "CZ75 Auto");
-	menu.AddItem("weapon_elite", "Dual Elite");
-	menu.AddItem("weapon_tec9", "Tec9");
-	menu.AddItem("weapon_deagle", "Deagle");
-	menu.AddItem("weapon_revolver", "R8 Revolver");
+	for (int i = 0; i < sizeof(PISTOL_WEAPONS); i++) {
+		menu.AddItem(PISTOL_WEAPONS[i], PISTOL_NAMES[i]);
+	}
 
 	return menu;
 }
@@ -196,9 +222,7 @@ public int PistolMenuFunction(Menu menu, MenuAction action, int client, int item
 			}
 
 			// Replace the player's current weapons with the selected pistol
-			RemoveWeaponsFromPlayer(client);
-			GivePlayerItem(client, "weapon_knife");
-			GivePlayerItem(client, currentWeapon[client]);
+			GivePistol(client, currentWeapon[client]);
 
 			// Mark that the player already received a pistol from the menu this spawn
 			receivedWeaponOnSpawnFromMenu[client] = true;
