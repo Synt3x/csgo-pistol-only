@@ -19,7 +19,7 @@ public Plugin:myinfo =  {
 	author = "Robin Linusson",
 	description = "Pistol Only for Counter-Strike:Global Offensive",
 	version = "1.3",
-	url = "http://www.synt3x.com"
+	url = "https://github.com/Synt3x/csgo-pistol-only"
 };
 
 public OnPluginStart() {
