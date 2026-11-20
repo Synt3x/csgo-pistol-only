@@ -60,8 +60,19 @@ bool receiveDialog[MAXPLAYERS + 1];
 bool receivedWeaponOnSpawnFromMenu[MAXPLAYERS + 1];
 bool shownSpawnHint[MAXPLAYERS + 1];
 
+// What bots get on spawn (sm_pistolonly_bots)
+enum BotMode {
+	BotMode_Off,    // 0: leave bots alone
+	BotMode_Random, // 1: random pistol every spawn
+	BotMode_Fixed   // pistol name: always that pistol
+};
+
+BotMode botMode = BotMode_Random;
+char botWeapon[WEAPON_NAME_LENGTH];
+
 ConVar cvarDefaultWeapon;
 ConVar cvarDebug;
+ConVar cvarBots;
 
 public Plugin myinfo = {
 	name = "Pistol Only",
@@ -80,9 +91,12 @@ public void OnPluginStart() {
 	CreateConVar("sm_pistolonly_version", PLUGIN_VERSION, "Pistol Only version", FCVAR_NOTIFY | FCVAR_DONTRECORD);
 	cvarDefaultWeapon = CreateConVar("sm_pistolonly_default", FALLBACK_WEAPON, "Pistol for players who haven't chosen one, e.g. weapon_glock or weapon_deagle");
 	cvarDebug = CreateConVar("sm_pistolonly_debug", "0", "1 = print menu picks to the player's console", _, true, 0.0, true, 1.0);
+	cvarBots = CreateConVar("sm_pistolonly_bots", "1", "Bot pistols: 1 = random every spawn, 0 = off, or a pistol name, e.g. weapon_deagle");
 	cvarDefaultWeapon.AddChangeHook(OnDefaultWeaponChanged);
+	cvarBots.AddChangeHook(OnBotsChanged);
 	AutoExecConfig(true, "pistol_only");
 	UpdateDefaultWeapon();
+	UpdateBotMode();
 
 	// Register chat commands for opening the pistol menu
 	RegConsoleCmd("sm_gun", changeWeapon);
@@ -96,22 +110,58 @@ public void OnPluginStart() {
 
 public void OnConfigsExecuted() {
 	UpdateDefaultWeapon();
+	UpdateBotMode();
 }
 
 public void OnDefaultWeaponChanged(ConVar convar, const char[] oldValue, const char[] newValue) {
 	UpdateDefaultWeapon();
 }
 
+public void OnBotsChanged(ConVar convar, const char[] oldValue, const char[] newValue) {
+	UpdateBotMode();
+}
+
+// Read a ConVar as a weapon name, accepting names without "weapon_", e.g. "deagle"
+void GetWeaponConVar(ConVar convar, char[] value, int maxlength) {
+	convar.GetString(value, maxlength);
+	TrimString(value);
+
+	if (value[0] != '\0' && StrContains(value, "weapon_") != 0) {
+		Format(value, maxlength, "weapon_%s", value);
+	}
+}
+
+// Read sm_pistolonly_bots: 0 = off, 1 = random, or a pistol name
+void UpdateBotMode() {
+	char value[WEAPON_NAME_LENGTH];
+	cvarBots.GetString(value, sizeof(value));
+	TrimString(value);
+
+	if (StrEqual(value, "0")) {
+		botMode = BotMode_Off;
+		return;
+	}
+
+	if (StrEqual(value, "1")) {
+		botMode = BotMode_Random;
+		return;
+	}
+
+	GetWeaponConVar(cvarBots, value, sizeof(value));
+	if (FindPistol(value) == -1) {
+		LogError("sm_pistolonly_bots \"%s\" is not 0, 1 or a pistol from the menu, using random pistols", value);
+		botMode = BotMode_Random;
+		return;
+	}
+
+	botMode = BotMode_Fixed;
+	strcopy(botWeapon, sizeof(botWeapon), value);
+}
+
 // Read sm_pistolonly_default, falling back to the USP-S if it isn't a menu pistol
 void UpdateDefaultWeapon() {
 	char value[WEAPON_NAME_LENGTH];
-	cvarDefaultWeapon.GetString(value, sizeof(value));
-	TrimString(value);
-
-	// Accept names without the "weapon_" prefix, e.g. "deagle"
-	if (value[0] != '\0' && StrContains(value, "weapon_") != 0) {
-		Format(value, sizeof(value), "weapon_%s", value);
-	}
+	GetWeaponConVar(cvarDefaultWeapon, value, sizeof(value));
 
 	if (FindPistol(value) == -1) {
 		LogError("sm_pistolonly_default \"%s\" is not a pistol from the menu, using %s", value, FALLBACK_WEAPON);
@@ -145,30 +195,57 @@ public void OnPlayerSpawnFrame(any userid) {
 	// Get the client who spawned (0 if they left during the frame)
 	int client = GetClientOfUserId(userid);
 
-	// Only handle real players on T or CT who are alive and in game
-	if (client > 0 && IsClientInGame(client) && IsPlayerAlive(client) && !IsFakeClient(client) && (GetClientTeam(client) == CS_TEAM_T || GetClientTeam(client) == CS_TEAM_CT)) {
-
-		// Use the default pistol if the player hasn't chosen one yet
-		if (currentWeapon[client][0] == '\0') {
-			strcopy(currentWeapon[client], sizeof(currentWeapon[]), defaultWeapon);
-		}
-
-		// Tell the player how to reopen the pistol menu, once per visit
-		if (!shownSpawnHint[client]) {
-			PrintCommandHint(client);
-			shownSpawnHint[client] = true;
-		}
-
-		// Replace the player's weapons with knife and pistol, then give armor
-		GivePistol(client, currentWeapon[client]);
-		GiveArmorToPlayer(client);
-		receivedWeaponOnSpawnFromMenu[client] = false;
-
-		// Show the menu unless the player chose to keep using the same pistol
-		if (receiveDialog[client]) {
-			dialog.Display(client, MENU_TIME_FOREVER);
-		}
+	// Only handle players on T or CT who are alive and in game
+	if (client <= 0 || !IsClientInGame(client) || !IsPlayerAlive(client)) {
+		return;
 	}
+
+	int team = GetClientTeam(client);
+	if (team != CS_TEAM_T && team != CS_TEAM_CT) {
+		return;
+	}
+
+	// Bots get their pistol without the menu
+	if (IsFakeClient(client)) {
+		GiveBotPistol(client);
+		return;
+	}
+
+	// Use the default pistol if the player hasn't chosen one yet
+	if (currentWeapon[client][0] == '\0') {
+		strcopy(currentWeapon[client], sizeof(currentWeapon[]), defaultWeapon);
+	}
+
+	// Tell the player how to reopen the pistol menu, once per visit
+	if (!shownSpawnHint[client]) {
+		PrintCommandHint(client);
+		shownSpawnHint[client] = true;
+	}
+
+	// Replace the player's weapons with knife and pistol, then give armor
+	GivePistol(client, currentWeapon[client]);
+	GiveArmorToPlayer(client);
+	receivedWeaponOnSpawnFromMenu[client] = false;
+
+	// Show the menu unless the player chose to keep using the same pistol
+	if (receiveDialog[client]) {
+		dialog.Display(client, MENU_TIME_FOREVER);
+	}
+}
+
+// Give a bot its pistol and armor, based on sm_pistolonly_bots
+void GiveBotPistol(int client) {
+	if (botMode == BotMode_Off) {
+		return;
+	}
+
+	if (botMode == BotMode_Random) {
+		GivePistol(client, PISTOL_WEAPONS[GetRandomInt(0, sizeof(PISTOL_WEAPONS) - 1)]);
+	} else {
+		GivePistol(client, botWeapon);
+	}
+
+	GiveArmorToPlayer(client);
 }
 
 // Tell the player how to open the pistol menu

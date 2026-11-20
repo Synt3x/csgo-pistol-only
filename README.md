@@ -27,6 +27,7 @@ Change these in `cfg/sourcemod/pistol_only.cfg`, which is created the first time
 | Setting | Default | What it does |
 |---|---|---|
 | `sm_pistolonly_default` | `weapon_usp_silencer` | Pistol for players who haven't picked one, e.g. `weapon_glock` or `deagle` |
+| `sm_pistolonly_bots` | `1` | `1` = bots get a random pistol every spawn, `0` = off, or a pistol name, e.g. `deagle`, to give all bots that pistol |
 | `sm_pistolonly_debug` | `0` | `1` prints each menu pick to the player's console |
 
 <details>
@@ -113,7 +114,7 @@ host_players_show 2
 ## FAQ
 
 **Do bots get pistols?**
-No. The plugin ignores bots.
+Yes. By default every bot gets a random pistol, plus armor, each time it spawns. Use `sm_pistolonly_bots` to turn this off or pick one pistol for all bots.
 
 **Why don't players see their weapon skins?**
 Players always get the plain pistol. Otherwise the game can swap the chosen pistol for one from the player's inventory, e.g. a P250 instead of the CZ75.

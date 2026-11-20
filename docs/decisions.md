@@ -2,6 +2,12 @@
 
 Newest first.
 
+## 2026-11-20 – Bots get a random pistol every spawn
+- **Area:** Gameplay / settings
+- **Decision:** `sm_pistolonly_bots` defaults to `1` (random pistol and armor every spawn). `0` turns it off, and a pistol name gives all bots that pistol. Invalid names fall back to random and are logged.
+- **Why:** Bots used to keep the game's default pistol, which looked out of place on a pistol server.
+- **Level:** LIVE
+
 ## 2026-11-20 – v1.5 isn't tagged until tested on a server
 - **Area:** Release
 - **Decision:** Changes can be pushed to master (CI checks that it compiles), but the v1.5 tag and release wait until the plugin has been tested on a CS:GO server.
