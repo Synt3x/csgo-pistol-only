@@ -2,6 +2,19 @@
 
 Newest first.
 
+## 2026-11-20 – Default pistol is the USP-S and is set with a ConVar
+- **Area:** Settings
+- **Decision:** `sm_pistolonly_default` (default `weapon_usp_silencer`) and `sm_pistolonly_debug` replace hardcoded values. Invalid names fall back to the USP-S and are logged.
+- **Why:** Admins can change the default without recompiling, and a typo can't leave players without a pistol.
+- **Level:** LIVE
+
+## 2026-11-20 – Pistols are always given without skins
+- **Area:** Gameplay
+- **Decision:** The pistol is given while the player briefly has no team, so the game gives the plain weapon instead of one from the player's inventory.
+- **Why:** Shared loadout slots made picks like CZ75, USP-S and R8 give the wrong gun. Skins don't matter on this server. Giving skins the player doesn't own breaks Valve's server rules, so that was ruled out.
+- **Objection:** Claude suggested keeping skins when the first attempt gave the right gun; Robin chose always plain for simplicity.
+- **Level:** LIVE
+
 ## 2026-11-20 – Menu choices while dead are saved for the next spawn
 - **Area:** Gameplay / menu
 - **Decision:** Picking a pistol while dead or in spectator saves it and gives it on the next spawn. Living players can still pick from the menu once per life.

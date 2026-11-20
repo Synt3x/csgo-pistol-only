@@ -7,6 +7,7 @@
 
 #define PLUGIN_VERSION "1.4"
 #define WEAPON_NAME_LENGTH 32
+#define FALLBACK_WEAPON "weapon_usp_silencer"
 
 // Pistols that can be chosen, in menu order
 static const char PISTOL_WEAPONS[][] = {
@@ -58,7 +59,9 @@ char currentWeapon[MAXPLAYERS + 1][WEAPON_NAME_LENGTH];
 bool receiveDialog[MAXPLAYERS + 1];
 bool receivedWeaponOnSpawnFromMenu[MAXPLAYERS + 1];
 bool shownSpawnHint[MAXPLAYERS + 1];
-bool debugmode = false;
+
+ConVar cvarDefaultWeapon;
+ConVar cvarDebug;
 
 public Plugin myinfo = {
 	name = "Pistol Only",
@@ -73,8 +76,13 @@ public void OnPluginStart() {
 	// Create the pistol selection menu
 	dialog = PistolMenu();
 
-	// Set the default pistol
-	strcopy(defaultWeapon, sizeof(defaultWeapon), "weapon_glock");
+	// Settings, saved to cfg/sourcemod/pistol_only.cfg
+	CreateConVar("sm_pistolonly_version", PLUGIN_VERSION, "Pistol Only version", FCVAR_NOTIFY | FCVAR_DONTRECORD);
+	cvarDefaultWeapon = CreateConVar("sm_pistolonly_default", FALLBACK_WEAPON, "Pistol for players who haven't chosen one, e.g. weapon_glock or weapon_deagle");
+	cvarDebug = CreateConVar("sm_pistolonly_debug", "0", "1 = print menu picks to the player's console", _, true, 0.0, true, 1.0);
+	cvarDefaultWeapon.AddChangeHook(OnDefaultWeaponChanged);
+	AutoExecConfig(true, "pistol_only");
+	UpdateDefaultWeapon();
 
 	// Register chat commands for opening the pistol menu
 	RegConsoleCmd("sm_gun", changeWeapon);
@@ -84,6 +92,33 @@ public void OnPluginStart() {
 
 	// Listen for player spawns
 	HookEvent("player_spawn", EventPlayerSpawn, EventHookMode_Post);
+}
+
+public void OnConfigsExecuted() {
+	UpdateDefaultWeapon();
+}
+
+public void OnDefaultWeaponChanged(ConVar convar, const char[] oldValue, const char[] newValue) {
+	UpdateDefaultWeapon();
+}
+
+// Read sm_pistolonly_default, falling back to the USP-S if it isn't a menu pistol
+void UpdateDefaultWeapon() {
+	char value[WEAPON_NAME_LENGTH];
+	cvarDefaultWeapon.GetString(value, sizeof(value));
+	TrimString(value);
+
+	// Accept names without the "weapon_" prefix, e.g. "deagle"
+	if (value[0] != '\0' && StrContains(value, "weapon_") != 0) {
+		Format(value, sizeof(value), "weapon_%s", value);
+	}
+
+	if (FindPistol(value) == -1) {
+		LogError("sm_pistolonly_default \"%s\" is not a pistol from the menu, using %s", value, FALLBACK_WEAPON);
+		strcopy(value, sizeof(value), FALLBACK_WEAPON);
+	}
+
+	strcopy(defaultWeapon, sizeof(defaultWeapon), value);
 }
 
 // Show the pistol menu by default to players who join
@@ -242,7 +277,7 @@ public int PistolMenuFunction(Menu menu, MenuAction action, int client, int item
 		menu.GetItem(item, selectedWeapon, sizeof(selectedWeapon));
 
 		// Print debug information about the selected weapon
-		if (debugmode) {
+		if (cvarDebug.BoolValue) {
 			PrintToConsole(client, "You selected item: '%d'. You selected weapon: '%s'.", item, selectedWeapon);
 		}
 

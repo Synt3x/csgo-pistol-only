@@ -19,6 +19,17 @@ This plugin requires the following packages to run:
 #### Chat commands
 Type `!gun`, `!guns`, `!pistol` or `!pistols` to open the pistol menu. Choose "Keep current pistol" to stop the menu from opening every time you spawn.
 
+#### Settings (ConVars)
+The first time the plugin loads it creates `cfg/sourcemod/pistol_only.cfg`, where these can be changed:
+
+| ConVar | Default | Description |
+|---|---|---|
+| `sm_pistolonly_default` | `weapon_usp_silencer` | Pistol for players who haven't chosen one, e.g. `weapon_glock` or `deagle`. Unknown names fall back to the USP-S and are logged as an error. |
+| `sm_pistolonly_debug` | `0` | `1` prints each menu pick to the player's console. |
+| `sm_pistolonly_version` | | The plugin version (read-only). |
+
+Players always get the plain version of a pistol, without their skins, so the game can't swap e.g. the CZ75 for the P250 in their inventory.
+
 ### Example server configuration
 
 ```
