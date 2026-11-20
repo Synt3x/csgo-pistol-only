@@ -9,46 +9,24 @@
 #define WEAPON_NAME_LENGTH 32
 #define FALLBACK_WEAPON "weapon_usp_silencer"
 
+enum struct Pistol {
+	char weapon[WEAPON_NAME_LENGTH]; // Entity class name, e.g. "weapon_glock"
+	char name[WEAPON_NAME_LENGTH];   // Menu label
+	int defindex;                    // Item definition index, to check what was given
+}
+
 // Pistols that can be chosen, in menu order
-static const char PISTOL_WEAPONS[][] = {
-	"weapon_glock",
-	"weapon_hkp2000",
-	"weapon_usp_silencer",
-	"weapon_p250",
-	"weapon_fiveseven",
-	"weapon_cz75a",
-	"weapon_elite",
-	"weapon_tec9",
-	"weapon_deagle",
-	"weapon_revolver"
-};
-
-// Menu labels, in the same order as PISTOL_WEAPONS
-static const char PISTOL_NAMES[][] = {
-	"Glock",
-	"HKP-2000",
-	"USP Silencer",
-	"P250",
-	"Five Seven",
-	"CZ75 Auto",
-	"Dual Elite",
-	"Tec9",
-	"Deagle",
-	"R8 Revolver"
-};
-
-// Item definition indexes, in the same order as PISTOL_WEAPONS
-static const int PISTOL_DEFINDEXES[] = {
-	4,  // weapon_glock
-	32, // weapon_hkp2000
-	61, // weapon_usp_silencer
-	36, // weapon_p250
-	3,  // weapon_fiveseven
-	63, // weapon_cz75a
-	2,  // weapon_elite
-	30, // weapon_tec9
-	1,  // weapon_deagle
-	64  // weapon_revolver
+static const Pistol PISTOLS[] = {
+	{ "weapon_glock",        "Glock",        4 },
+	{ "weapon_hkp2000",      "HKP-2000",     32 },
+	{ "weapon_usp_silencer", "USP Silencer", 61 },
+	{ "weapon_p250",         "P250",         36 },
+	{ "weapon_fiveseven",    "Five Seven",   3 },
+	{ "weapon_cz75a",        "CZ75 Auto",    63 },
+	{ "weapon_elite",        "Dual Elite",   2 },
+	{ "weapon_tec9",         "Tec9",         30 },
+	{ "weapon_deagle",       "Deagle",       1 },
+	{ "weapon_revolver",     "R8 Revolver",  64 }
 };
 
 Menu dialog = null;
@@ -240,7 +218,7 @@ void GiveBotPistol(int client) {
 	}
 
 	if (botMode == BotMode_Random) {
-		GivePistol(client, PISTOL_WEAPONS[GetRandomInt(0, sizeof(PISTOL_WEAPONS) - 1)]);
+		GivePistol(client, PISTOLS[GetRandomInt(0, sizeof(PISTOLS) - 1)].weapon);
 	} else {
 		GivePistol(client, botWeapon);
 	}
@@ -270,16 +248,16 @@ void GivePistol(int client, const char[] weapon) {
 	int index = FindPistol(weapon);
 	if (entity != -1 && index != -1) {
 		int given = GetEntProp(entity, Prop_Send, "m_iItemDefinitionIndex");
-		if (given != PISTOL_DEFINDEXES[index]) {
-			LogError("Asked for %s (item %d) but %N got item %d", weapon, PISTOL_DEFINDEXES[index], client, given);
+		if (given != PISTOLS[index].defindex) {
+			LogError("Asked for %s (item %d) but %N got item %d", weapon, PISTOLS[index].defindex, client, given);
 		}
 	}
 }
 
-// Return the position of a weapon in PISTOL_WEAPONS, or -1 if it isn't a pistol
+// Return the position of a weapon in PISTOLS, or -1 if it isn't a pistol
 int FindPistol(const char[] weapon) {
-	for (int i = 0; i < sizeof(PISTOL_WEAPONS); i++) {
-		if (StrEqual(PISTOL_WEAPONS[i], weapon)) {
+	for (int i = 0; i < sizeof(PISTOLS); i++) {
+		if (StrEqual(PISTOLS[i].weapon, weapon)) {
 			return i;
 		}
 	}
@@ -337,8 +315,8 @@ Menu PistolMenu() {
 
 	menu.AddItem("same", "Keep current pistol");
 
-	for (int i = 0; i < sizeof(PISTOL_WEAPONS); i++) {
-		menu.AddItem(PISTOL_WEAPONS[i], PISTOL_NAMES[i]);
+	for (int i = 0; i < sizeof(PISTOLS); i++) {
+		menu.AddItem(PISTOLS[i].weapon, PISTOLS[i].name);
 	}
 
 	return menu;
