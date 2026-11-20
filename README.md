@@ -129,7 +129,7 @@ Compile `plugin.sp` with the SourceMod compiler (`addons/sourcemod/scripting/spc
 GitHub Actions compiles every push. To publish a release:
 
 1. Update `PLUGIN_VERSION` at the top of `plugin.sp` and commit.
-2. Tag and push, e.g. `git tag v1.5` and `git push origin v1.5`.
+2. Tag and push, e.g. `git tag v2.0.0` and `git push origin v2.0.0`.
 
 The release gets the compiled `.smx` attached. It fails if the tag doesn't match `PLUGIN_VERSION`.
 
