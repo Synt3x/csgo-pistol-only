@@ -36,6 +36,20 @@ static const char PISTOL_NAMES[][] = {
 	"R8 Revolver"
 };
 
+// Item definition indexes, in the same order as PISTOL_WEAPONS
+static const int PISTOL_DEFINDEXES[] = {
+	4,  // weapon_glock
+	32, // weapon_hkp2000
+	61, // weapon_usp_silencer
+	36, // weapon_p250
+	3,  // weapon_fiveseven
+	63, // weapon_cz75a
+	2,  // weapon_elite
+	30, // weapon_tec9
+	1,  // weapon_deagle
+	64  // weapon_revolver
+};
+
 Menu dialog = null;
 
 char defaultWeapon[WEAPON_NAME_LENGTH];
@@ -131,7 +145,33 @@ void PrintCommandHint(int client) {
 void GivePistol(int client, const char[] weapon) {
 	RemoveWeaponsFromPlayer(client);
 	GivePlayerItem(client, "weapon_knife");
-	GivePlayerItem(client, weapon);
+
+	// Pistols that share a loadout slot (P2000/USP-S, P250/CZ75, Deagle/R8 ...)
+	// are swapped for the one in the player's inventory. Without a T/CT team
+	// the game has no loadout to use, so the plain weapon is given instead.
+	int team = GetEntProp(client, Prop_Send, "m_iTeamNum");
+	SetEntProp(client, Prop_Send, "m_iTeamNum", CS_TEAM_NONE);
+	int entity = GivePlayerItem(client, weapon);
+	SetEntProp(client, Prop_Send, "m_iTeamNum", team);
+
+	// Log it if the game still gave a different pistol
+	int index = FindPistol(weapon);
+	if (entity != -1 && index != -1) {
+		int given = GetEntProp(entity, Prop_Send, "m_iItemDefinitionIndex");
+		if (given != PISTOL_DEFINDEXES[index]) {
+			LogError("Asked for %s (item %d) but %N got item %d", weapon, PISTOL_DEFINDEXES[index], client, given);
+		}
+	}
+}
+
+// Return the position of a weapon in PISTOL_WEAPONS, or -1 if it isn't a pistol
+int FindPistol(const char[] weapon) {
+	for (int i = 0; i < sizeof(PISTOL_WEAPONS); i++) {
+		if (StrEqual(PISTOL_WEAPONS[i], weapon)) {
+			return i;
+		}
+	}
+	return -1;
 }
 
 void GiveArmorToPlayer(int client) {
