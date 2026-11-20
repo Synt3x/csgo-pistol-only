@@ -4,8 +4,10 @@
 
 new Handle:dialog = INVALID_HANDLE;
 
-new String:defaultWeapon[20];
-new String:currentWeapon[MAXPLAYERS + 1][20];
+#define WEAPON_NAME_LENGTH 32
+
+new String:defaultWeapon[WEAPON_NAME_LENGTH];
+new String:currentWeapon[MAXPLAYERS + 1][WEAPON_NAME_LENGTH];
 
 new bool:receiveDialog[MAXPLAYERS + 1];
 new bool:receivedWeaponOnSpawnFromMenu[MAXPLAYERS + 1];
@@ -156,7 +158,7 @@ public PistolMenuFunction(Handle:menu, MenuAction:action, client, item) {
 	if (action == MenuAction_Select) {
 
 		// Read the internal weapon name from the selected menu item
-		decl String:selectedWeapon[20];
+		decl String:selectedWeapon[WEAPON_NAME_LENGTH];
 		GetMenuItem(menu, item, selectedWeapon, sizeof(selectedWeapon));
 
 		// Print debug information about the selected weapon
