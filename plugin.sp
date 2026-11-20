@@ -164,8 +164,16 @@ public PistolMenuFunction(Handle:menu, MenuAction:action, client, item) {
 			receiveDialog[client] = false;
 		} else {
 
-			// Replace the player's current weapons with the selected pistol
+			// Remember the selected pistol for the next spawn
 			currentWeapon[client] = selectedWeapon;
+
+			// Dead players and spectators get it when they spawn instead
+			new team = GetClientTeam(client);
+			if (!IsPlayerAlive(client) || (team != CS_TEAM_T && team != CS_TEAM_CT)) {
+				return;
+			}
+
+			// Replace the player's current weapons with the selected pistol
 			RemoveWeaponsFromPlayer(client);
 			GivePlayerItem(client, "weapon_knife");
 			GivePlayerItem(client, currentWeapon[client]);
