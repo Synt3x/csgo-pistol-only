@@ -45,6 +45,11 @@ public OnPluginStart() {
 	HookEvent("player_spawn", EventPlayerSpawn, EventHookMode_Post);
 }
 
+// Show the pistol menu by default to players who join
+public OnClientPutInServer(client) {
+	receiveDialog[client] = true;
+}
+
 // Reset stored player data when they leave the server
 public OnClientDisconnect(client) {
 	currentWeapon[client] = "";
