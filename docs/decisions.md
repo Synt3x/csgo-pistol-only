@@ -8,10 +8,11 @@ Newest first.
 - **Why:** Bots used to keep the game's default pistol, which looked out of place on a pistol server.
 - **Level:** LIVE
 
-## 2026-11-20 – v1.5 isn't tagged until tested on a server
+## 2026-11-20 – v1.5 released before testing on a server
 - **Area:** Release
-- **Decision:** Changes can be pushed to master (CI checks that it compiles), but the v1.5 tag and release wait until the plugin has been tested on a CS:GO server.
-- **Why:** The one-frame spawn delay, weapon cleanup, plain-pistol giving and ConVars change in-game behaviour that can't be checked without a server. 1.4 was never released, so v1.5 is the first release with all of it.
+- **Decision:** v1.5 is tagged and released once CI compiles it, without first testing on a CS:GO server.
+- **Why:** Robin chose to release now. 1.4 was never released, so v1.5 is the first release with all the changes.
+- **Objection:** Claude recommended waiting for a server test, since the one-frame spawn delay, weapon cleanup, plain-pistol giving, bot pistols and ConVars can't be checked without one. Problems will be fixed in a follow-up release.
 - **Level:** LIVE
 
 ## 2026-11-20 – Default pistol is the USP-S and is set with a ConVar
