@@ -53,8 +53,14 @@ public OnClientDisconnect(client) {
 
 public EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast) {
 
-	// Get the client who triggered this spawn event
-	new client = GetClientOfUserId(GetEventInt(event,"userid"));
+	// Wait one frame so the game's own spawn weapons don't override ours
+	RequestFrame(OnPlayerSpawnFrame, GetEventInt(event, "userid"));
+}
+
+public OnPlayerSpawnFrame(any:userid) {
+
+	// Get the client who spawned (0 if they left during the frame)
+	new client = GetClientOfUserId(userid);
 
 	// Only handle real players on T or CT who are alive and in game
 	if (client > 0 && IsClientInGame(client) && IsPlayerAlive(client) && !IsFakeClient(client) && (GetClientTeam(client) == CS_TEAM_T || GetClientTeam(client) == CS_TEAM_CT)) {
