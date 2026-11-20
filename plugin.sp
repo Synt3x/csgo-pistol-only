@@ -111,6 +111,12 @@ public RemoveWeaponsFromPlayer(client) {
 
 public Action:changeWeapon(client, args) {
 
+	// The server console can't use menus
+	if (client == 0) {
+		ReplyToCommand(client, "This command can only be used in-game.");
+		return Plugin_Handled;
+	}
+
 	receiveDialog[client] = true;
 
 	if (receivedWeaponOnSpawnFromMenu[client]) {
@@ -119,7 +125,7 @@ public Action:changeWeapon(client, args) {
 		DisplayMenu(dialog, client, MENU_TIME_FOREVER);
 	}
 
-	return Plugin_Continue;
+	return Plugin_Handled;
 }
 
 // Create the pistol selection menu
