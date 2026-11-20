@@ -100,11 +100,18 @@ public GiveArmorToPlayer(client) {
 
 public RemoveWeaponsFromPlayer(client) {
 
+	// Slots 0-3: primary, secondary, knife, grenades (slot 4, the bomb, is kept)
 	for (new i = 0; i <= 3; i++) {
-		new entity = GetPlayerWeaponSlot(client, i);
+		new entity;
 
-		if (entity != -1) {
-			RemovePlayerItem(client, entity);
+		// A slot can hold several items (e.g. grenades), so empty it completely
+		while ((entity = GetPlayerWeaponSlot(client, i)) != -1) {
+			if (!RemovePlayerItem(client, entity)) {
+				break;
+			}
+
+			// Delete the weapon so it isn't left behind in the world
+			AcceptEntityInput(entity, "Kill");
 		}
 	}
 }
