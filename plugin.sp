@@ -184,16 +184,17 @@ public void Frame_PlayerSpawned(any userid) {
 		return;
 	}
 
-	if (g_ChosenWeapon[client][0] == '\0') {
-		strcopy(g_ChosenWeapon[client], sizeof(g_ChosenWeapon[]), g_DefaultWeapon);
-	}
-
 	if (!g_ShownHint[client]) {
 		PrintMenuHint(client);
 		g_ShownHint[client] = true;
 	}
 
-	GivePistol(client, g_ChosenWeapon[client]);
+	// Players who haven't picked a pistol get the current default
+	if (g_ChosenWeapon[client][0] == '\0') {
+		GivePistol(client, g_DefaultWeapon);
+	} else {
+		GivePistol(client, g_ChosenWeapon[client]);
+	}
 	GiveArmor(client);
 	g_PickedThisLife[client] = false;
 
