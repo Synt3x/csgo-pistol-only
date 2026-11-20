@@ -51,7 +51,7 @@ public OnClientDisconnect(client) {
 	receivedWeaponOnSpawnFromMenu[client] = false;
 }
 
-public Action:EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast) {
+public EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast) {
 
 	// Get the client who triggered this spawn event
 	new client = GetClientOfUserId(GetEventInt(event,"userid"));
