@@ -18,16 +18,16 @@ enum struct Pistol {
 
 // Pistols that can be chosen, in menu order
 static const Pistol PISTOLS[] = {
-	{ "weapon_glock",        "Glock",        4 },
-	{ "weapon_hkp2000",      "HKP-2000",     32 },
-	{ "weapon_usp_silencer", "USP Silencer", 61 },
-	{ "weapon_p250",         "P250",         36 },
-	{ "weapon_fiveseven",    "Five Seven",   3 },
-	{ "weapon_cz75a",        "CZ75 Auto",    63 },
-	{ "weapon_elite",        "Dual Elite",   2 },
-	{ "weapon_tec9",         "Tec9",         30 },
-	{ "weapon_deagle",       "Deagle",       1 },
-	{ "weapon_revolver",     "R8 Revolver",  64 }
+	{ "weapon_glock",        "Glock-18",      4 },
+	{ "weapon_hkp2000",      "P2000",         32 },
+	{ "weapon_usp_silencer", "USP-S",         61 },
+	{ "weapon_p250",         "P250",          36 },
+	{ "weapon_fiveseven",    "Five-SeveN",    3 },
+	{ "weapon_cz75a",        "CZ75-Auto",     63 },
+	{ "weapon_elite",        "Dual Berettas", 2 },
+	{ "weapon_tec9",         "Tec-9",         30 },
+	{ "weapon_deagle",       "Desert Eagle",  1 },
+	{ "weapon_revolver",     "R8 Revolver",   64 }
 };
 
 // What bots get on spawn (sm_pistolonly_bots)

@@ -18,7 +18,7 @@ Join T or CT and the pistol menu opens.
 - Type `!gun` (or `!guns`, `!pistol`, `!pistols`) to open the menu again.
 - Choose **Keep current pistol** to stop the menu opening on every spawn.
 
-Pistols: Glock, P2000, USP-S, P250, Five-SeveN, CZ75-Auto, Dual Berettas, Tec-9, Desert Eagle and R8 Revolver.
+Pistols: Glock-18, P2000, USP-S, P250, Five-SeveN, CZ75-Auto, Dual Berettas, Tec-9, Desert Eagle and R8 Revolver.
 
 ## Settings
 
