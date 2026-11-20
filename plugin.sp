@@ -11,6 +11,7 @@ new String:currentWeapon[MAXPLAYERS + 1][WEAPON_NAME_LENGTH];
 
 new bool:receiveDialog[MAXPLAYERS + 1];
 new bool:receivedWeaponOnSpawnFromMenu[MAXPLAYERS + 1];
+new bool:shownSpawnHint[MAXPLAYERS + 1];
 new bool:debugmode = false;
 
 public Plugin:myinfo =  {
@@ -49,6 +50,7 @@ public OnClientDisconnect(client) {
 	currentWeapon[client] = "";
 	receiveDialog[client] = true;
 	receivedWeaponOnSpawnFromMenu[client] = false;
+	shownSpawnHint[client] = false;
 }
 
 public EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast) {
@@ -70,8 +72,11 @@ public OnPlayerSpawnFrame(any:userid) {
 			currentWeapon[client] = defaultWeapon;
 		}
 
-		// Tell the player how to reopen the pistol menu
-		PrintCommandHint(client);
+		// Tell the player how to reopen the pistol menu, once per visit
+		if (!shownSpawnHint[client]) {
+			PrintCommandHint(client);
+			shownSpawnHint[client] = true;
+		}
 
 		// Strip current weapons, then give knife, pistol, and armor
 		RemoveWeaponsFromPlayer(client);
