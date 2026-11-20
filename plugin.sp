@@ -71,7 +71,7 @@ public OnPlayerSpawnFrame(any:userid) {
 		}
 
 		// Tell the player how to reopen the pistol menu
-		PrintToChat(client, "Type !gun, !guns, !pistol or !pistols to choose a new pistol");
+		PrintCommandHint(client);
 
 		// Strip current weapons, then give knife, pistol, and armor
 		RemoveWeaponsFromPlayer(client);
@@ -85,6 +85,11 @@ public OnPlayerSpawnFrame(any:userid) {
 			DisplayMenu(dialog, client, MENU_TIME_FOREVER);
 		}
 	}
+}
+
+// Tell the player how to open the pistol menu
+PrintCommandHint(client) {
+	PrintToChat(client, "Type !gun, !guns, !pistol or !pistols to choose a new pistol");
 }
 
 public GiveArmorToPlayer(client) {
@@ -136,7 +141,7 @@ Handle:PistolMenu() {
 	SetMenuTitle(menu, "Pistol Menu:");
 	SetMenuExitButton(menu, false);
 
-	AddMenuItem(menu, "same", "Hide Menu");
+	AddMenuItem(menu, "same", "Keep current pistol");
 
 	AddMenuItem(menu, "weapon_glock", "Glock");
 	AddMenuItem(menu, "weapon_hkp2000", "HKP-2000");
@@ -166,9 +171,10 @@ public PistolMenuFunction(Handle:menu, MenuAction:action, client, item) {
 			PrintToConsole(client, "You selected item: '%d'. You selected weapon: '%s'.",item, selectedWeapon);
 		}
 
-		// If the player selected "same", keep the same pistol every round
+		// If the player selected "same", keep the same pistol and stop showing the menu
 		if (StrEqual(selectedWeapon,"same")) {
 			receiveDialog[client] = false;
+			PrintCommandHint(client);
 		} else {
 
 			// Remember the selected pistol for the next spawn
