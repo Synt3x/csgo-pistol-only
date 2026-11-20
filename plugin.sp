@@ -6,7 +6,6 @@ new Handle:dialog = INVALID_HANDLE;
 
 new String:defaultWeapon[20];
 new String:currentWeapon[MAXPLAYERS + 1][20];
-new String:previousWeapon[MAXPLAYERS + 1][20];
 
 new bool:receiveDialog[MAXPLAYERS + 1];
 new bool:receivedWeaponOnSpawnFromMenu[MAXPLAYERS + 1];
@@ -46,7 +45,6 @@ public OnClientPutInServer(client) {
 // Reset stored player data when they leave the server
 public OnClientDisconnect(client) {
 	currentWeapon[client] = "";
-	previousWeapon[client] = "";
 	receiveDialog[client] = true;
 	receivedWeaponOnSpawnFromMenu[client] = false;
 }
@@ -65,14 +63,9 @@ public OnPlayerSpawnFrame(any:userid) {
 	// Only handle real players on T or CT who are alive and in game
 	if (client > 0 && IsClientInGame(client) && IsPlayerAlive(client) && !IsFakeClient(client) && (GetClientTeam(client) == CS_TEAM_T || GetClientTeam(client) == CS_TEAM_CT)) {
 
-		// Remember the pistol the player used previously
-		previousWeapon[client] = currentWeapon[client];
-
-		// Use the default pistol if this is the player's first valid spawn
-		if (StrEqual(previousWeapon[client],"")) {
+		// Use the default pistol if the player hasn't chosen one yet
+		if (currentWeapon[client][0] == '\0') {
 			currentWeapon[client] = defaultWeapon;
-		} else {
-			currentWeapon[client] = previousWeapon[client];
 		}
 
 		// Tell the player how to reopen the pistol menu
