@@ -29,7 +29,7 @@ host_players_show 2
 // Config
 mp_autoteambalance 0            // Disable team balancing and hope the players do that themselves
 mp_limitteams 0                 // How many more people could be in CT or T? 0 = Disable
-sv_gameinstructor_disable 0     // Who needs game instructions?
+sv_gameinstructor_disable 1     // Disable game instructor hints
 sv_dc_friends_reqd 0            // Allow direct connection
 sv_cheats 0                     // Disable ingame cheats
 sv_pausable 0                   // Disable possibility to pause during game
@@ -38,7 +38,7 @@ sv_pausable 0                   // Disable possibility to pause during game
 mp_forcecamera 0                // Everybody can spectate everyone
 mp_display_kill_assists 0       // Disable kill assists
 mp_force_pick_time 15           // Force player to choose team
-mp_free_armor 2                 // Plugin should give kev+helm
+mp_free_armor 2                 // Kevlar + helmet on spawn (the plugin also gives it)
 mp_teammates_are_enemies 0      // Should it be FFA then turn this to 1
 mp_solid_teammates 0            // Friends will now be ghosts
 
@@ -48,8 +48,8 @@ mp_deathcam_skippable 1         // Player can skip deathcam
 mp_respawn_on_death_t 1         // T will spawn on death
 mp_respawn_on_death_ct 1        // CT will spawn on death
 mp_respawn_immunitytime 1       // Protection time when spawning
-mp_randomspawn 0                // Which team the player will respawn in
-mp_randomspawn_los 0            // Should players be line of sight when spawning
+mp_randomspawn 0                // Use team spawn points (1 = random spawn points)
+mp_randomspawn_los 0            // Random spawns don't have to avoid enemy line of sight
 
 // Weapon & item
 sv_infinite_ammo 2              // Infinite ammo but needs to reload
@@ -68,16 +68,16 @@ ammo_grenade_limit_total 0      // Disables grenades, smokes, flashes, decoy, mo
 mp_startmoney 1337              // Start money
 mp_buytime 0                    // No buytime
 mp_buy_anywhere 0               // Player can't buy anywhere
-mp_buy_during_immunity 0        // Player can't buy item when he is in immunity
+mp_buy_during_immunity 0        // Players can't buy during spawn immunity
 
 // Bot
 bot_quota 0                     // How many bots should spawn?
-bot_join_after_player 0         // Should bot join afer player?
-bot_quota_mode normal           // How difficult should the bots be?
+bot_join_after_player 0         // Should bots join after a player?
+bot_quota_mode normal           // How bot_quota fills slots (normal, fill or match)
 bot_kick                        // Let us kick the bots
 
-// Warmup - diable warmup
-mp_do_warmup_offine 0
+// Warmup - disable warmup
+mp_do_warmup_offline 0
 mp_do_warmup_period 0
 mp_warmuptime 0
 mp_warmuptime_all_players_connected 0
@@ -107,7 +107,7 @@ mp_halftime_pausetimer 0
 
 ## FAQ
 ### Does this work with bots?
-*No, bots don't get a random pistol at spawn.*
+*No, the plugin ignores bots, so they don't get a pistol, armor or the menu.*
 
 ### Can players still pick up and buy other weapons?
 *Yes, this plugin doesn't remove weapons that players pick up. Use the server config above to restrict other weapons as much as possible.*
