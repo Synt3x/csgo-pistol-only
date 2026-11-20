@@ -1,22 +1,24 @@
+#pragma semicolon 1
+#pragma newdecls required
+
 #include <cstrike>
 #include <sourcemod>
 #include <sdktools>
 
 #define PLUGIN_VERSION "1.4"
-
-new Handle:dialog = INVALID_HANDLE;
-
 #define WEAPON_NAME_LENGTH 32
 
-new String:defaultWeapon[WEAPON_NAME_LENGTH];
-new String:currentWeapon[MAXPLAYERS + 1][WEAPON_NAME_LENGTH];
+Menu dialog = null;
 
-new bool:receiveDialog[MAXPLAYERS + 1];
-new bool:receivedWeaponOnSpawnFromMenu[MAXPLAYERS + 1];
-new bool:shownSpawnHint[MAXPLAYERS + 1];
-new bool:debugmode = false;
+char defaultWeapon[WEAPON_NAME_LENGTH];
+char currentWeapon[MAXPLAYERS + 1][WEAPON_NAME_LENGTH];
 
-public Plugin:myinfo =  {
+bool receiveDialog[MAXPLAYERS + 1];
+bool receivedWeaponOnSpawnFromMenu[MAXPLAYERS + 1];
+bool shownSpawnHint[MAXPLAYERS + 1];
+bool debugmode = false;
+
+public Plugin myinfo = {
 	name = "Pistol Only",
 	author = "Robin Linusson",
 	description = "Pistol Only for Counter-Strike:Global Offensive",
@@ -24,13 +26,13 @@ public Plugin:myinfo =  {
 	url = "https://github.com/Synt3x/csgo-pistol-only"
 };
 
-public OnPluginStart() {
+public void OnPluginStart() {
 
 	// Create the pistol selection menu
 	dialog = PistolMenu();
 
 	// Set the default pistol
-	defaultWeapon = "weapon_glock";
+	strcopy(defaultWeapon, sizeof(defaultWeapon), "weapon_glock");
 
 	// Register chat commands for opening the pistol menu
 	RegConsoleCmd("sm_gun", changeWeapon);
@@ -43,35 +45,35 @@ public OnPluginStart() {
 }
 
 // Show the pistol menu by default to players who join
-public OnClientPutInServer(client) {
+public void OnClientPutInServer(int client) {
 	receiveDialog[client] = true;
 }
 
 // Reset stored player data when they leave the server
-public OnClientDisconnect(client) {
-	currentWeapon[client] = "";
+public void OnClientDisconnect(int client) {
+	currentWeapon[client][0] = '\0';
 	receiveDialog[client] = true;
 	receivedWeaponOnSpawnFromMenu[client] = false;
 	shownSpawnHint[client] = false;
 }
 
-public EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast) {
+public void EventPlayerSpawn(Event event, const char[] name, bool dontBroadcast) {
 
 	// Wait one frame so the game's own spawn weapons don't override ours
-	RequestFrame(OnPlayerSpawnFrame, GetEventInt(event, "userid"));
+	RequestFrame(OnPlayerSpawnFrame, event.GetInt("userid"));
 }
 
-public OnPlayerSpawnFrame(any:userid) {
+public void OnPlayerSpawnFrame(any userid) {
 
 	// Get the client who spawned (0 if they left during the frame)
-	new client = GetClientOfUserId(userid);
+	int client = GetClientOfUserId(userid);
 
 	// Only handle real players on T or CT who are alive and in game
 	if (client > 0 && IsClientInGame(client) && IsPlayerAlive(client) && !IsFakeClient(client) && (GetClientTeam(client) == CS_TEAM_T || GetClientTeam(client) == CS_TEAM_CT)) {
 
 		// Use the default pistol if the player hasn't chosen one yet
 		if (currentWeapon[client][0] == '\0') {
-			currentWeapon[client] = defaultWeapon;
+			strcopy(currentWeapon[client], sizeof(currentWeapon[]), defaultWeapon);
 		}
 
 		// Tell the player how to reopen the pistol menu, once per visit
@@ -89,26 +91,26 @@ public OnPlayerSpawnFrame(any:userid) {
 
 		// Show the menu unless the player chose to keep using the same pistol
 		if (receiveDialog[client]) {
-			DisplayMenu(dialog, client, MENU_TIME_FOREVER);
+			dialog.Display(client, MENU_TIME_FOREVER);
 		}
 	}
 }
 
 // Tell the player how to open the pistol menu
-PrintCommandHint(client) {
+void PrintCommandHint(int client) {
 	PrintToChat(client, "Type !gun, !guns, !pistol or !pistols to choose a new pistol");
 }
 
-public GiveArmorToPlayer(client) {
+void GiveArmorToPlayer(int client) {
 	SetEntProp(client, Prop_Send, "m_ArmorValue", 100);
 	SetEntProp(client, Prop_Send, "m_bHasHelmet", 1);
 }
 
-public RemoveWeaponsFromPlayer(client) {
+void RemoveWeaponsFromPlayer(int client) {
 
 	// Slots 0-3: primary, secondary, knife, grenades (slot 4, the bomb, is kept)
-	for (new i = 0; i <= 3; i++) {
-		new entity;
+	for (int i = 0; i <= 3; i++) {
+		int entity;
 
 		// A slot can hold several items (e.g. grenades), so empty it completely
 		while ((entity = GetPlayerWeaponSlot(client, i)) != -1) {
@@ -122,7 +124,7 @@ public RemoveWeaponsFromPlayer(client) {
 	}
 }
 
-public Action:changeWeapon(client, args) {
+public Action changeWeapon(int client, int args) {
 
 	// The server console can't use menus
 	if (client == 0) {
@@ -135,62 +137,62 @@ public Action:changeWeapon(client, args) {
 	if (receivedWeaponOnSpawnFromMenu[client]) {
 		PrintToChat(client, "Pistol menu will appear next time you spawn.");
 	} else {
-		DisplayMenu(dialog, client, MENU_TIME_FOREVER);
+		dialog.Display(client, MENU_TIME_FOREVER);
 	}
 
 	return Plugin_Handled;
 }
 
 // Create the pistol selection menu
-Handle:PistolMenu() {
+Menu PistolMenu() {
 
-	new Handle:menu = CreateMenu(PistolMenuFunction);
-	SetMenuTitle(menu, "Pistol Menu:");
-	SetMenuExitButton(menu, false);
+	Menu menu = new Menu(PistolMenuFunction);
+	menu.SetTitle("Pistol Menu:");
+	menu.ExitButton = false;
 
-	AddMenuItem(menu, "same", "Keep current pistol");
+	menu.AddItem("same", "Keep current pistol");
 
-	AddMenuItem(menu, "weapon_glock", "Glock");
-	AddMenuItem(menu, "weapon_hkp2000", "HKP-2000");
-	AddMenuItem(menu, "weapon_usp_silencer", "USP Silencer");
-	AddMenuItem(menu, "weapon_p250", "P250");
-	AddMenuItem(menu, "weapon_fiveseven", "Five Seven");
-	AddMenuItem(menu, "weapon_cz75a", "CZ75 Auto");
-	AddMenuItem(menu, "weapon_elite", "Dual Elite");
-	AddMenuItem(menu, "weapon_tec9", "Tec9");
-	AddMenuItem(menu, "weapon_deagle", "Deagle");
-	AddMenuItem(menu, "weapon_revolver", "R8 Revolver");
+	menu.AddItem("weapon_glock", "Glock");
+	menu.AddItem("weapon_hkp2000", "HKP-2000");
+	menu.AddItem("weapon_usp_silencer", "USP Silencer");
+	menu.AddItem("weapon_p250", "P250");
+	menu.AddItem("weapon_fiveseven", "Five Seven");
+	menu.AddItem("weapon_cz75a", "CZ75 Auto");
+	menu.AddItem("weapon_elite", "Dual Elite");
+	menu.AddItem("weapon_tec9", "Tec9");
+	menu.AddItem("weapon_deagle", "Deagle");
+	menu.AddItem("weapon_revolver", "R8 Revolver");
 
 	return menu;
 }
 
-public PistolMenuFunction(Handle:menu, MenuAction:action, client, item) {
+public int PistolMenuFunction(Menu menu, MenuAction action, int client, int item) {
 
 	// Handle the player's menu selection
 	if (action == MenuAction_Select) {
 
 		// Read the internal weapon name from the selected menu item
-		decl String:selectedWeapon[WEAPON_NAME_LENGTH];
-		GetMenuItem(menu, item, selectedWeapon, sizeof(selectedWeapon));
+		char selectedWeapon[WEAPON_NAME_LENGTH];
+		menu.GetItem(item, selectedWeapon, sizeof(selectedWeapon));
 
 		// Print debug information about the selected weapon
 		if (debugmode) {
-			PrintToConsole(client, "You selected item: '%d'. You selected weapon: '%s'.",item, selectedWeapon);
+			PrintToConsole(client, "You selected item: '%d'. You selected weapon: '%s'.", item, selectedWeapon);
 		}
 
 		// If the player selected "same", keep the same pistol and stop showing the menu
-		if (StrEqual(selectedWeapon,"same")) {
+		if (StrEqual(selectedWeapon, "same")) {
 			receiveDialog[client] = false;
 			PrintCommandHint(client);
 		} else {
 
 			// Remember the selected pistol for the next spawn
-			currentWeapon[client] = selectedWeapon;
+			strcopy(currentWeapon[client], sizeof(currentWeapon[]), selectedWeapon);
 
 			// Dead players and spectators get it when they spawn instead
-			new team = GetClientTeam(client);
+			int team = GetClientTeam(client);
 			if (!IsPlayerAlive(client) || (team != CS_TEAM_T && team != CS_TEAM_CT)) {
-				return;
+				return 0;
 			}
 
 			// Replace the player's current weapons with the selected pistol
@@ -202,4 +204,6 @@ public PistolMenuFunction(Handle:menu, MenuAction:action, client, item) {
 			receivedWeaponOnSpawnFromMenu[client] = true;
 		}
 	}
+
+	return 0;
 }
