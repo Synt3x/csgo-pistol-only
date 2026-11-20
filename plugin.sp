@@ -64,7 +64,7 @@ public Action:EventPlayerSpawn(Handle:event, const String:name[], bool:dontBroad
 	new client = GetClientOfUserId(GetEventInt(event,"userid"));
 
 	// Only handle real players on T or CT who are alive and in game
-	if (IsClientInGame(client) && IsPlayerAlive(client) && !IsFakeClient(client) && (GetClientTeam(client) == CS_TEAM_T || GetClientTeam(client) == CS_TEAM_CT)) {
+	if (client > 0 && IsClientInGame(client) && IsPlayerAlive(client) && !IsFakeClient(client) && (GetClientTeam(client) == CS_TEAM_T || GetClientTeam(client) == CS_TEAM_CT)) {
 
 		// Remember the pistol the player used previously
 		previousWeapon[client] = currentWeapon[client];
