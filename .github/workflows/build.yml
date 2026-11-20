@@ -1,7 +1,7 @@
 name: Build
 
 # Compile on every push and pull request.
-# Pushing a tag like v1.4 also creates a GitHub release with the .smx attached.
+# Pushing a tag like v2.0.0 also creates a GitHub release with the .smx attached.
 on:
   push:
     branches: ["**"]

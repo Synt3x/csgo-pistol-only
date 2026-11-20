@@ -55,7 +55,7 @@ bool g_ShownHint[MAXPLAYERS + 1];
 public Plugin myinfo = {
 	name = "Pistol Only",
 	author = "Robin Linusson",
-	description = "Pistol Only for Counter-Strike:Global Offensive",
+	description = "Pistol Only for Counter-Strike: Global Offensive",
 	version = PLUGIN_VERSION,
 	url = "https://github.com/Synt3x/csgo-pistol-only"
 };
