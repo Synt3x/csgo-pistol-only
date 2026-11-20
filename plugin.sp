@@ -42,7 +42,7 @@ ConVar g_cvDebug;
 ConVar g_cvBots;
 
 Menu g_PistolMenu;
-char g_DefaultWeapon[WEAPON_NAME_LENGTH];
+char g_DefaultWeapon[WEAPON_NAME_LENGTH] = FALLBACK_WEAPON;
 BotMode g_BotMode = BotMode_Random;
 char g_BotWeapon[WEAPON_NAME_LENGTH];
 
@@ -72,11 +72,7 @@ public void OnPluginStart() {
 	g_cvDefault = CreateConVar("sm_pistolonly_default", FALLBACK_WEAPON, "Pistol for players who haven't chosen one, e.g. weapon_glock or weapon_deagle");
 	g_cvDebug = CreateConVar("sm_pistolonly_debug", "0", "1 = print menu picks to the player's console", _, true, 0.0, true, 1.0);
 	g_cvBots = CreateConVar("sm_pistolonly_bots", "1", "Bot pistols: 1 = random every spawn, 0 = off, or a pistol name, e.g. weapon_deagle");
-	g_cvDefault.AddChangeHook(ConVar_DefaultChanged);
-	g_cvBots.AddChangeHook(ConVar_BotsChanged);
 	AutoExecConfig(true, "pistol_only");
-	UpdateDefaultWeapon();
-	UpdateBotMode();
 
 	RegConsoleCmd("sm_gun", Command_Pistol);
 	RegConsoleCmd("sm_guns", Command_Pistol);
@@ -93,7 +89,17 @@ public void OnPluginStart() {
 	}
 }
 
+// Read the settings once the config has run (also called after a mid-game load).
+// Change hooks are added here, not in OnPluginStart, so loading the config
+// doesn't trigger them too and log the same invalid value twice.
 public void OnConfigsExecuted() {
+	static bool hooked = false;
+	if (!hooked) {
+		g_cvDefault.AddChangeHook(ConVar_DefaultChanged);
+		g_cvBots.AddChangeHook(ConVar_BotsChanged);
+		hooked = true;
+	}
+
 	UpdateDefaultWeapon();
 	UpdateBotMode();
 }
