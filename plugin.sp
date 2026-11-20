@@ -2,6 +2,8 @@
 #include <sourcemod>
 #include <sdktools>
 
+#define PLUGIN_VERSION "1.4"
+
 new Handle:dialog = INVALID_HANDLE;
 
 #define WEAPON_NAME_LENGTH 32
@@ -18,7 +20,7 @@ public Plugin:myinfo =  {
 	name = "Pistol Only",
 	author = "Robin Linusson",
 	description = "Pistol Only for Counter-Strike:Global Offensive",
-	version = "1.3",
+	version = PLUGIN_VERSION,
 	url = "https://github.com/Synt3x/csgo-pistol-only"
 };
 

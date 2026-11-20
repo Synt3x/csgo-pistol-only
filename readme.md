@@ -11,10 +11,13 @@ This plugin requires the following packages to run:
 * Metamod:Source - https://www.sourcemm.net/
 
 #### Installation and usage
-1. After you have installed the required packages, compile the plugin into an `.smx` file.
-2. When the file is compiled, move the `.smx` file into `addons/sourcemod/plugins`.
+1. After you have installed the required packages, download `pistol-only.smx` from the [latest release](https://github.com/Synt3x/csgo-pistol-only/releases/latest), or compile it yourself (see below).
+2. Move the `.smx` file into `addons/sourcemod/plugins`.
 3. Launch your dedicated server and join it; it should now be running with the plugin enabled.
 4. In-game instructions will appear when you join CT or T.
+
+#### Chat commands
+Type `!gun`, `!guns`, `!pistol` or `!pistols` to open the pistol menu. Choose "Keep current pistol" to stop the menu from opening every time you spawn.
 
 ### Example server configuration
 
@@ -104,6 +107,13 @@ mp_halftime_pausetimer 0
 ### Compilation options
 * Sourcemod: You can use the compiler from the package, found in `addons/sourcemod/scripting` - https://wiki.alliedmods.net/Compiling_SourceMod_Plugins
 * Sourcemod Online Compiler - https://www.sourcemod.net/compiler.php
+
+### Releasing
+Every push is compiled by GitHub Actions. To publish a release:
+1. Update `PLUGIN_VERSION` at the top of `plugin.sp` and commit.
+2. Tag the commit with the same version and push the tag, e.g. `git tag v1.4` and `git push origin v1.4`.
+
+The workflow attaches the compiled `.smx` to the release, and fails if the tag doesn't match `PLUGIN_VERSION`.
 
 ## FAQ
 ### Does this work with bots?
