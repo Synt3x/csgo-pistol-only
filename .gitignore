@@ -1,10 +1,10 @@
+# Compiled SourcePawn plugins
+*.smx
 
-# Created by https://www.gitignore.io/api/sourcepawn
+# Extensions
+*.dll
+*.so
 
-### SourcePawn ###
-# SourcePawn
-*.dll # extensions
-*.so # extensions
-*.smx # plugins
-
-# End of https://www.gitignore.io/api/sourcepawn
+# Local Claude Code instructions
+CLAUDE.md
+.claude/
